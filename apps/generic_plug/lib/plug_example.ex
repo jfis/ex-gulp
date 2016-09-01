@@ -1,7 +1,7 @@
 defmodule ModulePlug do
   @behaviour Plug
 
-  def init(opts) do
+  def init(_opts) do
     [new: "new"]
   end
 
@@ -15,7 +15,6 @@ end
 
 defmodule PlugClient do
   use Plug.Builder
-  # use GenericPlug.Builder, pluggable: Plug.Conn
 
   # # gulpline :qb do
   plug :private_gulp, %{test: "eats"}
@@ -31,7 +30,7 @@ defmodule PlugClient do
   end
 
   #
-  defp bad(conn, _opts) do
+  defp bad(_conn, _opts) do
     2
   end
   defp halt(conn, _opts) do
