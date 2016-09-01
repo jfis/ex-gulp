@@ -10,14 +10,14 @@ defmodule Gulp.Builder do
       end
 
     quote do
-      use GenericPlug.Builder, pluggable: Gulp.Conn
+      use GenericPlug.Builder, pluggable: Gulp.Conn, behaviour: Gulp
 
       def request(method, url, stuff) do
         body = Keyword.get(stuff, :body, %{})
         %Gulp.Conn{method: method, url: url}
         |> call([])
       end
-      
+
       unquote(http_methods)
     end
   end

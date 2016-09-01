@@ -9,7 +9,7 @@ end
 defmodule Plug.Builder do
   defmacro __using__(_opts) do
     quote do
-      use GenericPlug.Builder, pluggable: Plug.Connpl
+      use GenericPlug.Builder, pluggable: Plug.Conn, behaviour: Plug 
     end
   end
 end

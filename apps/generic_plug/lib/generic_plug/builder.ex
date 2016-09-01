@@ -7,7 +7,7 @@ defmodule GenericPlug.Builder do
   @doc false
   defmacro __using__(opts) do
     quote do
-      @behaviour GenericPlug
+      @behaviour unquote(opts[:behaviour])
       @plug_builder_opts unquote(opts)
 
       def init(opts) do
