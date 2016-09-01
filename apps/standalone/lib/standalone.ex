@@ -1,0 +1,2 @@
+defmodule Standalone do
+end
