@@ -2,9 +2,9 @@ defmodule Gulp.Builder do
   @moduledoc """
   """
 
-  @type gulp :: module | atom
+  # @type gulp :: module | atom
 
-  defmacro gulp(name, opts \\ []) do
+  defmacro plug(name, opts \\ []) do
     quote do
       @gulps {unquote(name), unquote(opts)}
     end
