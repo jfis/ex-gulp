@@ -16,6 +16,6 @@ defmodule Gulp.Adapter.Hackney do
     #     IO.inspect r
     #     raise "debit failed"
     # end
-    conn
+    %{conn | resp_body: "response body"}
   end
 end
