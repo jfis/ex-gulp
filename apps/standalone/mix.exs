@@ -35,6 +35,8 @@ defmodule Standalone.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:common, in_umbrella: true},
+
+    ]
   end
 end
