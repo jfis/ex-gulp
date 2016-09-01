@@ -58,7 +58,7 @@ defmodule Gulp.Builder do
       raise "no gulps have been defined in #{inspect env.module}"
     end
 
-    {conn, body} = Gulp.compile(gulps)
+    {conn, body} = Gulp.Builder.compile(gulps)
 
     quote do
       defp gulp_call(unquote(conn), _), do: unquote(body)
