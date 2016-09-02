@@ -33,14 +33,20 @@ defmodule GulpClient do
   use Gulp.Builder
   import Gulp.Conn
 
-  # pipeline :sandbox do
+  pipeline :before do
     plug Gulp.RequestId, key: "Request-Id", func: &__MODULE__.test/0
     plug :private_gulp, %{test: "eats"}
     plug :on_response
     plug :public_gulp, 4
-    plug Gulp.Adapter.Hackney#this module shouldnt know adapter, but how to set placement?
+  end
+
+  pipeline :after do
     plug ModuleGulp, key: :yes
-  # end
+  end
+
+  plug :before
+  plug Gulp.Adapter.Hackney #this module maybe shouldnt know adapter, but how to set placement?
+  plug :after
 
   def action1(param1, _param2, _param3) do
     post "/path1/path2", body: param1
