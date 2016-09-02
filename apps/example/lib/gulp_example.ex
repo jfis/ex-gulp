@@ -57,7 +57,7 @@ defmodule GulpClient do
     conn
   end
 
-  defp on_response(conn, opts) do
+  defp on_response(conn, _opts) do
     IO.puts "on response"
     conn
     |> register_response_handler( &(rh(&1)) )
