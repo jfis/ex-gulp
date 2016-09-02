@@ -1,5 +1,22 @@
+defmodule ModuleGulp2 do
+  @behaviour Gulp
+
+  def init(_opts) do
+    [new: "new2"]
+  end
+
+  def call(conn, opts) do
+    IO.puts "module gulp2"
+    IO.inspect opts
+    conn
+  end
+end
+
 defmodule ModuleGulp do
   @behaviour Gulp
+  # use Gulp.Builder
+
+  # plug ModuleGulp2
 
   def init(_opts) do
     [new: "new"]
@@ -7,11 +24,8 @@ defmodule ModuleGulp do
 
   def call(conn, opts) do
     IO.puts "module gulp"
-    IO.inspect(conn)
-    IO.inspect(opts)
-
-    # Gulp.Conn.run_response_handlers(conn)
     conn
+    # super(conn, opts)
   end
 end
 
