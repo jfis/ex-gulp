@@ -10,7 +10,7 @@ defmodule Gulp.Builder do
       @gulps {pipeline, {unquote(name), unquote(opts)}}
     end
   end
-  
+
   defmacro pipeline(group, do: block) do
     quote do
       old_pipeline = Module.get_attribute(__MODULE__, :pipeline)
@@ -73,18 +73,18 @@ defmodule Gulp.Builder do
       raise "no gulps have been defined in #{inspect env.module}"
     end
 
-    IO.inspect gulps
+    # IO.inspect gulps
 
     groups = gulps |> Keyword.keys() |> Enum.sort |> Enum.uniq |> Enum.reverse
-    IO.inspect(groups)
+    # IO.inspect(groups)
     #get unique plug groups
     #compile non default groups
     #substitute???
 
     for g <- groups do
-      IO.inspect g
+      # IO.inspect g
       gulps = Keyword.get_values(gulps, g)
-      IO.inspect gulps
+      # IO.inspect gulps
       {conn, body} = Gulp.Builder.compile(gulps)
 
 
