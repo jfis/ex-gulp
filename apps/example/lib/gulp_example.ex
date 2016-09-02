@@ -22,7 +22,7 @@ defmodule ModuleGulp do
     [new: "new"]
   end
 
-  def call(conn, opts) do
+  def call(conn, _opts) do
     IO.puts "module gulp"
     conn
     # super(conn, opts)
@@ -42,18 +42,36 @@ defmodule GulpClient do
 
   pipeline :after do
     plug ModuleGulp, key: :yes
+    pipeline :nested do
+      plug :public_gulp, 5
+      pipeline :nested do
+        plug :public_gulp, 7
+      end
+    end
+    plug :public_gulp, 6
   end
+
 
   plug :before
   plug Gulp.Adapter.Hackney #this module maybe shouldnt know adapter, but how to set placement?
   plug :after
 
-  def action1(param1, _param2, _param3) do
-    post "/path1/path2", body: param1
+
+  pipeline :alt do
+    plug :before
+    # plug Gulp.Adapter.Hackney #this module maybe shouldnt know adapter, but how to set placement?
+    plug :after
   end
 
-  def action2(param) do
-    post "/path1/path2", body: param
+
+  def normal() do
+    post "/path1/path2", body: "param1"
+  end
+
+  def direct_pipeline() do
+    # pipe_through :alt
+
+    post :alt, "/path1/path2", body: "param1", x: 111
   end
 
   defp private_gulp(conn, opts) do

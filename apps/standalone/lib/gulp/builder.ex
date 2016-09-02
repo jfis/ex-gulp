@@ -4,6 +4,23 @@ defmodule Gulp.Builder do
 
   # @type gulp :: module | atom
 
+
+
+  # def pipe_through(name) do
+  #   IO.inspect name
+  #
+  #   quote do
+  #     @test 1
+  #   end
+  # end
+
+  # defmacro pipe_through(name, opts \\ []) do
+  #   quote do
+  #     pipeline = Module.get_attribute(__MODULE__, :pipeline) || :__pipeline_default
+  #     @gulps {pipeline, {unquote(name), unquote(opts)}}
+  #   end
+  # end
+
   defmacro plug(name, opts \\ []) do
     quote do
       pipeline = Module.get_attribute(__MODULE__, :pipeline) || :__pipeline_default
@@ -14,29 +31,76 @@ defmodule Gulp.Builder do
   defmacro pipeline(group, do: block) do
     quote do
       old_pipeline = Module.get_attribute(__MODULE__, :pipeline)
-      @pipeline unquote(group)
+      pipeline = old_pipeline || unquote(group) #ignore nested pipeline
+      @pipeline pipeline
       unquote(block)
       @pipeline old_pipeline
     end
   end
 
-  # @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
+
+
+  def make_conn(method, url, stuff) do
+    body = Keyword.get(stuff, :body, %{})
+    %Gulp.Conn{method: method, url: url}
+  end
+  #
+  # def request(method, url, stuff) do
+  #   request!(method, url, stuff)
+  # end
+  #
+  # def request!(method, url, stuff) do
+  #   # pipe_through(pipeline, conn, [])
+  # end
+
 
   defmacro __using__(_options) do
     http_verbs = [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
     http_methods =
-      for hm <- http_verbs do
-        hm_ = hm |> to_string |> Kernel.<>("!") |> String.to_atom()
+      for verb <- http_verbs do
+        # verb! = verb |> to_string |> Kernel.<>("!") |> String.to_atom()
+        # def unquote(verb)(url, stuff) do
+        #   make_conn(verb, url, stuff)
+        #   |> __pipeline_default([])
+        #
+        # end
         quote do
-          def unquote(hm)(url, stuff) do
-            request(unquote(hm), url, stuff)
+          defmacro unquote(verb)(url, stuff) do
+            caller = Map.get(__CALLER__, :function)
+
+            v = unquote(verb)
+            quote do
+              make_conn(unquote(v), unquote(url), unquote(stuff))
+              |> Gulp.Conn.put_private(:caller, unquote(caller))
+              |> __pipeline_default([])
+            end
           end
-          def unquote(hm_)(url, stuff) do
-            request!(unquote(hm), url, stuff)
+          defmacro unquote(verb)(pipe, url, stuff) do
+            caller = Map.get(__CALLER__, :function)
+            v = unquote(verb)
+            quote do
+              make_conn(unquote(v), unquote(url), unquote(stuff))
+              |> Gulp.Conn.put_private(:caller, unquote(caller))
+              |> unquote(pipe)([])
+            end
           end
         end
-      end
 
+        # defmacro unquote(verb!)(url, stuff) do
+        #   v = unquote(verb!)
+        #   quote do
+        #     make_conn(unquote(v), unquote(url), unquote(stuff))
+        #     |> __pipeline_default([])
+        #   end
+        # end
+        # defmacro unquote(verb!)(pipe, url, stuff) do
+        #   v = unquote(verb!)
+        #   quote do
+        #     make_conn(unquote(v), unquote(url), unquote(stuff))
+        #     |> unquote(pipe)([])
+        #   end
+        # end
+      end
 
 
     quote do
@@ -54,16 +118,6 @@ defmodule Gulp.Builder do
       defoverridable [init: 1, call: 2]
 
 
-
-      def request(method, url, stuff) do
-        request!(method, url, stuff)
-      end
-
-      def request!(method, url, stuff) do
-        body = Keyword.get(stuff, :body, %{})
-        %Gulp.Conn{method: method, url: url}
-        |> call([])
-      end
 
       unquote(http_methods)
 
@@ -83,16 +137,27 @@ defmodule Gulp.Builder do
       raise "no gulps have been defined in #{inspect env.module}"
     end
 
-    groups = gulps |> Keyword.keys() |> Enum.sort |> Enum.uniq |> Enum.reverse
+    groups =
+      gulps |> Keyword.keys() |> Enum.sort |> Enum.uniq |> Enum.reverse
+
 
     for g <- groups do
       gulps = Keyword.get_values(gulps, g)
       {conn, body} = Gulp.Builder.compile(gulps)
 
+      # {
       quote do
         defp unquote(g)(unquote(conn), _), do: unquote(body)
-      end #|> Macro.to_string() |> IO.puts
+      # end, #|> Macro.to_string() |> IO.puts
+      # quote do
+        # defp pipe_through(unquote(g), conn, opts), do: unquote(g)(conn, opts)
+      end
+      # }
     end
+    # |> Enum.reduce({[],[]}, fn({e1, e2}, {l1, l2}) -> {[e1 | l1], [e2 |l2]} end)
+    # |> Tuple.to_list()
+    # |> IO.inspect()
+    # |> List.flatten()
   end
 
   def compile(pipeline) do

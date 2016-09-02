@@ -107,5 +107,8 @@ defstruct [url: "",
     conn = Enum.reduce response_handlers, conn, &(&1.(&2))
   end
 
+  def put_private(%Conn{private: private} = conn, key, value) when is_atom(key) do
+    %{conn | private: Map.put(private, key, value)}
+  end
 
 end
