@@ -6,9 +6,20 @@ defmodule Gulp.Builder do
 
   defmacro plug(name, opts \\ []) do
     quote do
-      @gulps {unquote(name), unquote(opts)}
+      pipeline = Module.get_attribute(__MODULE__, :pipeline) || :__pipeline_default
+      @gulps {pipeline, {unquote(name), unquote(opts)}}
     end
   end
+  
+  defmacro pipeline(group, do: block) do
+    quote do
+      old_pipeline = Module.get_attribute(__MODULE__, :pipeline)
+      @pipeline unquote(group)
+      unquote(block)
+      @pipeline old_pipeline
+    end
+  end
+
   @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
 
   defmacro __using__(_options) do
@@ -29,7 +40,8 @@ defmodule Gulp.Builder do
       end
 
       def call(conn, opts) do
-        gulp_call(conn, opts)
+        # gulp_call(conn, opts)
+        __pipeline_default(conn, opts)
       end
 
       defoverridable [init: 1, call: 2]
@@ -49,6 +61,8 @@ defmodule Gulp.Builder do
       import unquote(__MODULE__)#, only: [gulp: 1, gulp: 2]
       Module.register_attribute(__MODULE__, :gulps, accumulate: true)
       @before_compile unquote(__MODULE__)
+
+      @pipeline nil
     end
   end
 
@@ -59,10 +73,24 @@ defmodule Gulp.Builder do
       raise "no gulps have been defined in #{inspect env.module}"
     end
 
-    {conn, body} = Gulp.Builder.compile(gulps)
+    IO.inspect gulps
 
-    quote do
-      defp gulp_call(unquote(conn), _), do: unquote(body)
+    groups = gulps |> Keyword.keys() |> Enum.sort |> Enum.uniq |> Enum.reverse
+    IO.inspect(groups)
+    #get unique plug groups
+    #compile non default groups
+    #substitute???
+
+    for g <- groups do
+      IO.inspect g
+      gulps = Keyword.get_values(gulps, g)
+      IO.inspect gulps
+      {conn, body} = Gulp.Builder.compile(gulps)
+
+
+      quote do
+        defp unquote(g)(unquote(conn), _), do: unquote(body)
+      end #|> Macro.to_string() |> IO.puts
     end
   end
 
@@ -101,7 +129,7 @@ defmodule Gulp.Builder do
         :module   -> "expected #{inspect plug}.call/2 to return a Gulp.Conn"
         :function -> "expected #{plug}/2 to return a Gulp.Conn"
       end
-      <> ", all plugs must receive a connection (conn) and return a connection"
+      #<> ", all plugs must receive a connection (conn) and return a connection"
 
     quote do
       case unquote(call) do
