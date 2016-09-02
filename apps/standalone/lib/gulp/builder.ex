@@ -20,17 +20,24 @@ defmodule Gulp.Builder do
     end
   end
 
-  @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
+  # @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
 
   defmacro __using__(_options) do
+    http_verbs = [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
     http_methods =
-      for hm <- [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head] do
+      for hm <- http_verbs do
+        hm_ = hm |> to_string |> Kernel.<>("!") |> String.to_atom()
         quote do
           def unquote(hm)(url, stuff) do
             request(unquote(hm), url, stuff)
           end
+          def unquote(hm_)(url, stuff) do
+            request!(unquote(hm), url, stuff)
+          end
         end
       end
+
+
 
     quote do
       @behaviour Gulp
@@ -49,6 +56,10 @@ defmodule Gulp.Builder do
 
 
       def request(method, url, stuff) do
+        request!(method, url, stuff)
+      end
+
+      def request!(method, url, stuff) do
         body = Keyword.get(stuff, :body, %{})
         %Gulp.Conn{method: method, url: url}
         |> call([])
