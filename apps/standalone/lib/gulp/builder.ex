@@ -57,7 +57,6 @@ defmodule Gulp.Builder do
       unquote(http_methods)
 
 
-
       import unquote(__MODULE__)#, only: [gulp: 1, gulp: 2]
       Module.register_attribute(__MODULE__, :gulps, accumulate: true)
       @before_compile unquote(__MODULE__)
@@ -73,20 +72,11 @@ defmodule Gulp.Builder do
       raise "no gulps have been defined in #{inspect env.module}"
     end
 
-    # IO.inspect gulps
-
     groups = gulps |> Keyword.keys() |> Enum.sort |> Enum.uniq |> Enum.reverse
-    # IO.inspect(groups)
-    #get unique plug groups
-    #compile non default groups
-    #substitute???
 
     for g <- groups do
-      # IO.inspect g
       gulps = Keyword.get_values(gulps, g)
-      # IO.inspect gulps
       {conn, body} = Gulp.Builder.compile(gulps)
-
 
       quote do
         defp unquote(g)(unquote(conn), _), do: unquote(body)
