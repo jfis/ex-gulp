@@ -1,5 +1,6 @@
 defmodule Gulp.Adapter.Hackney do
-
+  @behaviour Gulp
+  
   def init(opts) do
     opts
   end
