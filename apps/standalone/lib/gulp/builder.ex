@@ -9,10 +9,11 @@ defmodule Gulp.Builder do
       @gulps {unquote(name), unquote(opts)}
     end
   end
+  @http_methods [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head]
 
   defmacro __using__(_options) do
     http_methods =
-      for hm <- [:delete, :get, :head, :options, :patch, :post, :put, :trace] do
+      for hm <- [:get, :post, :put, :patch, :delete, :options, :connect, :trace, :head] do
         quote do
           def unquote(hm)(url, stuff) do
             request(unquote(hm), url, stuff)
