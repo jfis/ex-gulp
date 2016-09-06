@@ -21,24 +21,23 @@ defmodule Gulp.Builder do
   #   end
   # end
 
-  defmacro plug(name, opts \\ []) do
-    quote do
-      pipeline = Module.get_attribute(__MODULE__, :pipeline) || :__pipeline_default
-      @gulps {pipeline, {unquote(name), unquote(opts)}}
-    end
-  end
 
-  defmacro pipeline(group, do: block) do
+  defmacro plug(pipeline_name, do: block) do
     quote do
       old_pipeline = Module.get_attribute(__MODULE__, :pipeline)
-      pipeline = old_pipeline || unquote(group) #ignore nested pipeline
+      pipeline = old_pipeline || unquote(pipeline_name) #ignore nested pipeline
       @pipeline pipeline
       unquote(block)
       @pipeline old_pipeline
     end
   end
 
-
+  defmacro plug(name, opts \\ []) do
+    quote do
+      pipeline = Module.get_attribute(__MODULE__, :pipeline) || :__pipeline_default
+      @gulps {pipeline, {unquote(name), unquote(opts)}}
+    end
+  end
 
   def make_conn(method, url, stuff) do
     body = Keyword.get(stuff, :body, %{})
