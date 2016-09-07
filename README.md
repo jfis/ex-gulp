@@ -41,7 +41,7 @@ maybe something like:
         post "/path1/path2", body: body
       end
 
-      def direct_pipeline(body) do
+      def named_pipeline(body) do
         post :alt, "/path1/path2", body: body
       end
     end
