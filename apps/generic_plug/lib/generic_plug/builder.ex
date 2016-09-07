@@ -4,6 +4,28 @@ defmodule GenericPlug.Builder do
 
   @type plug :: module | atom
 
+  @doc """
+  """
+  defmacro plug(pipeline_name, opts \\ [])
+  defmacro plug(pipeline_name, do: block) do
+    quote do
+      old_pipeline = Module.get_attribute(__MODULE__, :pipeline)
+      pipeline = old_pipeline || unquote(pipeline_name) #ignore nested pipeline
+      @pipeline pipeline
+      unquote(block)
+      @pipeline old_pipeline
+    end
+  end
+
+  defmacro plug(plug, opts) do
+    quote do
+      pipeline = Module.get_attribute(__MODULE__, :pipeline) || :__pipeline_default
+      @plugs {pipeline, {unquote(plug), unquote(opts), true}}
+    end
+  end
+
+
+
   @doc false
   defmacro __using__(opts) do
     quote do
@@ -15,7 +37,7 @@ defmodule GenericPlug.Builder do
       end
 
       def call(pluggable, opts) do
-        plug_builder_call(pluggable, opts)
+        __pipeline_default(pluggable, opts)
       end
 
       defoverridable [init: 1, call: 2]
@@ -25,6 +47,8 @@ defmodule GenericPlug.Builder do
 
       Module.register_attribute(__MODULE__, :plugs, accumulate: true)
       @before_compile GenericPlug.Builder
+
+      @pipeline nil
     end
   end
 
@@ -39,20 +63,26 @@ defmodule GenericPlug.Builder do
       raise "no plugs have been defined in #{inspect env.module}"
     end
 
-    {pluggable, body} = GenericPlug.Builder.compile(pluggableMod, env, plugs, builder_opts)
+    pipelines =
+      plugs |> Keyword.keys() |> Enum.sort |> Enum.uniq |> Enum.reverse
 
-    quote do
-      defp plug_builder_call(unquote(pluggable), _), do: unquote(body)
+
+    for p <- pipelines do
+      plugs_in_pipeline = Keyword.get_values(plugs, p)
+      {pluggable, body} = GenericPlug.Builder.compile(pluggableMod, env, plugs_in_pipeline, builder_opts)
+
+      quote do
+        defp unquote(p)(unquote(pluggable), _), do: unquote(body)
+      end
     end
+
+    # {pluggable, body} = GenericPlug.Builder.compile(pluggableMod, env, plugs, builder_opts)
+    #
+    # quote do
+    #   defp plug_builder_call(unquote(pluggable), _), do: unquote(body)
+    # end
   end
 
-  @doc """
-  """
-  defmacro plug(plug, opts \\ []) do
-    quote do
-      @plugs {unquote(plug), unquote(opts), true}
-    end
-  end
 
   @doc """
   """
