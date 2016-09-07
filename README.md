@@ -33,10 +33,10 @@ maybe something like:
 
 
       def normal() do
-        post "/path1/path2", body: "param1"
+        post "/path1/path2", body: "body"
       end
 
       def direct_pipeline() do
-        post :alt, "/path1/path2", body: "param1", x: 111
+        post :alt, "/path1/path2", body: "body", options: [{"something", 1}]
       end
     end
