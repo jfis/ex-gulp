@@ -7,7 +7,7 @@ maybe something like:
     defmodule GulpClient do
       use Gulp.Builder
 
-      plug BaseUrl
+      plug BaseUrl, "https://github.com"
       plug RequestId
       plug LoadOauthKeys
       plug Oauth
@@ -16,6 +16,7 @@ maybe something like:
       plug ResponseLogger
       plug ResponseGulp
 
+      #can also do named pipelines
       plug :before do
         plug BaseUrl
         plug RequestId
@@ -36,11 +37,11 @@ maybe something like:
       end
 
 
-      def normal() do
-        post "/path1/path2", body: "body"
+      def default_pipeline(body) do
+        post "/path1/path2", body: body
       end
 
-      def direct_pipeline() do
-        post :alt, "/path1/path2", body: "body", options: [{"something", 1}]
+      def direct_pipeline(body) do
+        post :alt, "/path1/path2", body: body
       end
     end
