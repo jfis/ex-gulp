@@ -11,7 +11,9 @@ maybe something like:
       plug RequestId
       plug LoadOauthKeys
       plug Oauth
+      plug RequestLogger
       plug Gulp.Adapter.Hackney
+      plug ResponseLogger
       plug ResponseGulp
 
       plug :before do
@@ -19,9 +21,11 @@ maybe something like:
         plug RequestId
         plug LoadOauthKeys
         plug Oauth
+        plug RequestLogger
       end
 
       plug :after do
+        plug ResponseLogger
         plug ResponseGulp
       end
 
